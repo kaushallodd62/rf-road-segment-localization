@@ -50,6 +50,12 @@ recovered examples but did not improve the overall score. The
 [results](docs/RESULTS.md) describe those tradeoffs and the experiments that led
 to them.
 
+These experiments used the available capture to develop the processing and
+evaluation approach. The intended next phase was a larger capture with multiple
+vehicles and richer RF measurements, including Doppler and channel response, to
+investigate the remaining ambiguities and test generalization across vehicles and
+passes. The project ended before that capture took place.
+
 ## Try the synthetic example
 
 From the repository root, using Python 3.12:

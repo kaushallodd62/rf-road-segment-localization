@@ -4,8 +4,7 @@
 
 The source was an older C-V2X capture of one vehicle. I assigned road-segment
 labels by matching reported coordinates to segmented road centerlines. Coordinates
-and segment IDs supplied the targets, not the RF model inputs. Direction came
-from reported heading.
+and segment IDs supplied the targets. Direction came from reported heading.
 
 The initial dataset used exported summaries. A later audit found that some rows
 republished the same analyzer window at a later timestamp. Within the training

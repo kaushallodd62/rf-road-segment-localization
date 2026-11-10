@@ -1,29 +1,54 @@
 # RF road-segment localization
 
-Can RF measurements help identify a vehicle's road segment? I explored this
-question using a small C-V2X field capture, then investigated how travel direction,
-recent measurements and uneven sampling affected the predictions.
+C-V2X vehicles broadcast safety messages containing their reported location, speed
+and heading. A vehicle can misreport its location, which raises a question: could
+the received radio signal help check where it actually is?
 
-The project is complete. The private capture is excluded. The repository contains
-the original experiment code, a short account of the findings, and a synthetic
-example that runs without the field data.
+This project explored predicting a vehicle's road segment from receiver-side RF
+measurements. The idea was to compare that estimate with the location reported
+in the message. The experiments focused on how reliably the RF measurements could
+distinguish segments in a small field capture.
 
-## What I found
+This repository contains the original experiment code, an account of the findings,
+and a synthetic example that runs without the original field data.
 
-Reported travel direction improved both the random forest and MLP. Adding recent
-RF measurements improved the forest overall, although some short segments became
-harder to recognize. The small RNN, GRU and temporal CNN recipes I tested did not
-outperform the forest.
+## How I approached it
 
-On the same 1,217 query measurements, the forest's accuracy rose from **57.66%**
-with the current observation to **67.41%** with ten observations. Macro recall
-rose from **41.45%** to **45.31%**. These are averages over five whole-pass
-training folds and three seeds, from one capture. They are development results.
+I started with exploratory data analysis: plotting vehicle traces, checking feature
+availability and correlations, and assigning road-segment labels from reported
+coordinates. I grouped measurements into complete directional passes for splitting
+and used distance-weighted k-NN as an initial baseline.
 
-The useful part of the work was understanding the mistakes: repeated exports of
-the same measurement, direction-dependent failures, short visits, and a slow pass
-that the longer-history model handled poorly. Keeping observations with incomplete
-history recovered data but did not improve the overall score.
+I then compared random forests and an MLP, exploring feature selection, forest leaf
+sizes, neural-network regularization and class weighting. I also tried direct
+search over neural-network weights. Alongside accuracy, I tracked recall for each
+segment, confusion matrices and geographic error to see which locations the models
+struggled with.
+
+A closer audit found that some exported rows repeated the same underlying
+measurement. After separating those publications from distinct RF windows, I
+examined segment pairs and the effect of travel direction. That led to experiments
+with recent measurement history, followed by RNN, GRU and temporal CNN comparisons.
+The final analysis looked at short segment visits, uneven training coverage and
+ways to retain observations with incomplete history.
+
+## Main findings
+
+Reported travel direction improved both the random forest and MLP. Recent RF
+measurements improved the forest overall, although longer histories made some
+short segments harder to recognize. The small RNN, GRU and temporal CNN recipes
+I tested did not outperform the forest.
+
+On the same 1,217 query measurements, forest accuracy rose from **57.66%** with the
+current observation to **67.41%** with ten observations. Macro recall rose from
+**41.45%** to **45.31%**. These are averages over five whole-pass training folds
+and three seeds, from one capture. They are development results.
+
+Failure analysis showed that the aggregate scores hid substantial differences
+between segments, directions and vehicle passes. Retaining incomplete histories
+recovered examples but did not improve the overall score. The
+[results](docs/RESULTS.md) describe those tradeoffs and the experiments that led
+to them.
 
 ## Try the synthetic example
 
@@ -54,7 +79,5 @@ The files in `test_model/` retain their original names, paths and contents.
 were added for publication. The experiment scripts expect intermediate files that
 are not included, so they cannot reproduce the original field results on their own.
 
-This study evaluated road-segment prediction, an initial question relevant to
-checking reported vehicle locations. It did not validate a spoofing detector.
 The code and documentation were developed with AI assistance; the long working
 journals remain in the private archive. No license is granted in this snapshot.
